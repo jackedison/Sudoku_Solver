@@ -1,0 +1,8 @@
+# DS_Store if OSX
+.DS_Store
+
+# Vscode (settings.json for editor)
+.vscode/
+
+# Pycache
+__pycache__/
