@@ -3,6 +3,7 @@
 import pygame  # wrapper for the SDL library
 import time
 import copy
+import json  # to read json sudoku from file
 
 import solver
 
@@ -26,22 +27,25 @@ class Grid():
         self.wl = 3  # Width of wide line
         self.nl = 1  # Width of narrow line
 
-        # Puzzle
-        self.puzzle = [
-                    [None, None, None, 5, 6, 8, 4, None, None],
-                    [None, 8, 7, None, None, None, 9, None, 5],
-                    [None, 5, None, None, None, None, 6, 8, None],
-                    [None, None, None, 9, 2, None, None, 7, None],
-                    [None, 2, None, None, None, 1, None, None, 9],
-                    [8, None, None, None, 7, None, None, None, None],
-                    [4, None, None, None, None, 5, None, None, 2],
-                    [None, 3, None, None, None, None, None, 6, 4],
-                    [None, None, None, 7, 3, None, None, 9, None],
-                    ]
+        # Puzzle (read in from json)
+        self.puzzle, self.constraints = read_sudoku_json()
+
         self.original_puzzle = copy.deepcopy(self.puzzle)
 
-        sudoku_solver = solver.Sudoku_Solver(self.puzzle)
+        # Solve and store the solution of the puzzle for future referal
+        sudoku_solver = solver.Advanced_Sudoku_Solver(
+            self.puzzle,
+            anti_king=self.constraints['anti_king'],
+            anti_knight=self.constraints['anti_knight'],
+            main_diagonals=self.constraints['main_diagonals'],
+            magic_square=self.constraints['magic_square']
+            )
+
         self.solutions = sudoku_solver.solve()
+        assert len(self.solutions) > 0  # No solutions exist to sudoku in .json
+        print('This sudoku has {} solution(s)'.format(len(self.solutions)))
+        with open('solutions.json', 'w+') as file:  # Save solutions to JSON
+            json.dump({'solutions': self.solutions}, file)
         self.solution = self.solutions[0]  # Assume 1 solution
 
         # Draw surface:
@@ -56,6 +60,9 @@ class Grid():
         # Draw lines & numbers
         self.draw()
         self.draw_all_nums()
+
+        # Set number of mistakes to adjust timer by
+        self.mistakes = 0
 
         # Start timer
         self.start_time = time.time()
@@ -93,7 +100,7 @@ class Grid():
                 if self.puzzle[r][c] is not None:
                     self.draw_num(r, c)
 
-    def draw_num(self, row, col, colour=(0, 0, 0)):
+    def draw_num(self, row, col):
         '''Row and col as index (i.e. 0-8 not 1-9)'''
         # Get number to write in
         num = str(self.puzzle[row][col])
@@ -103,10 +110,14 @@ class Grid():
         center = ((coords[0][0] + coords[1][0]) // 2,
                   (coords[0][1] + coords[1][1]) // 2)
 
-        if self.original_puzzle[row][col] is None:
-            colour = (0, 0, 255)
-        else:
+        # Colour dependent on hard coded, right, or wrong
+        if self.original_puzzle[row][col] is not None:  # Hard coded
             colour = (0, 0, 0)
+        elif self.puzzle[row][col] == self.solution[row][col]:  # Correct
+            colour = (0, 0, 255)
+        else:  # Incorrect
+            colour = (255, 0, 0)
+
         textsurf = self.font.render(num, True, colour)
 
         # Text doesn't center on y axis for some reason so slight adjustment
@@ -170,9 +181,10 @@ class Grid():
         self.select_box(row, col)
 
     def select_box(self, row, col):
-        self.shade_box(row, col)
+        if [row, col] not in self.selected_boxes:
+            self.shade_box(row, col)
 
-        self.selected_boxes.append([row, col])
+            self.selected_boxes.append([row, col])
 
     def unselect_all(self):
         for row, col in self.selected_boxes:
@@ -187,9 +199,12 @@ class Grid():
 
                 # Set new numbers
                 self.puzzle[row][col] = num
-                self.draw_num(row, col)
 
-        self.check_complete()
+                # Check if number is correct, if not colour red and + mistake
+                if self.puzzle[row][col] != self.solution[row][col]:
+                    self.mistakes += 1
+
+                self.draw_num(row, col)
 
     def check_complete(self):
         # Check if puzzle complete
@@ -199,7 +214,12 @@ class Grid():
         else:
             # Check if solution is correct
             if self.puzzle in self.solutions:
-                print('Solved correctly!')
+                self.display_solved(True)
+                return True
+            else:
+                self.display_solved(False)
+
+        return False
 
     def clear_cell(self, row, col):
         self.puzzle[row][col] = None
@@ -212,14 +232,59 @@ class Grid():
     def update_timer(self):
         # Clear old timer
         left, top = 20, 835
-        screen.fill((255, 255, 255), (left, top, 900-left, 900-top))
+        screen.fill((255, 255, 255), (left, top, 450-left, 900-top))
 
         # Draw timer to bottom of the screen
         new_time = int(time.time() - self.start_time)
+        new_time += (15 * self.mistakes)  # Add 15s per mistake
+
         string = 'Time: {:02.0f}:{:02.0f}'.format(new_time//60, new_time % 60)
 
         text = self.font_time.render(string, True, (116, 164, 181))
         self.window.blit(text, (left, top))
+
+    def solve(self):
+        # Function to solve based on original analysis of solution
+        for r, row in enumerate(self.solution):
+            for c, ele in enumerate(row):
+                if self.puzzle[r][c] is None:
+                    self.unselect_all()
+                    self.select_box(r, c)
+                    self.input_number(ele)
+
+        self.unselect_all()
+
+    def display_solved(self, solved):
+        # Clear any old text
+        left, top = 450, 835
+        screen.fill((255, 255, 255), (left, top, 900-left, 900-top))
+
+        # Draw solved
+        if solved:
+            string = 'Solved!'
+            colour = (52, 199, 71)
+        else:
+            string = 'Wrong solution'
+            colour = (199, 52, 71)
+
+        text = self.font_time.render(string, True, colour)
+        self.window.blit(text, (left, top))
+
+
+def read_sudoku_json():
+    with open('sudoku.json') as file:
+        sudoku = json.load(file)
+    puzzle = sudoku['sudoku']
+
+    constraints = sudoku
+    del(constraints['sudoku'])
+
+    # Assert puzzle is valid
+    assert len(puzzle) == 9
+    for row in puzzle:
+        assert len(row) == 9
+
+    return puzzle, constraints
 
 
 if __name__ == "__main__":
@@ -229,8 +294,8 @@ if __name__ == "__main__":
 
     # Run game and log user actions
     running = True
-    while running:
-
+    solved = False
+    while running and not solved:
         keys = pygame.key.get_pressed()  # To check if ctrl is pressed
         clicks = pygame.mouse.get_pressed()  # To check if click held down
 
@@ -287,7 +352,9 @@ if __name__ == "__main__":
                     else:
                         grid.select_box_arrow('LEFT', unselect=True)
 
-                # TODO - add other keypresses (i.e. space to solve)
+                # Space key
+                if (event.key == pygame.K_SPACE):
+                    grid.solve()
 
             if event.type == pygame.MOUSEBUTTONDOWN or clicks[0]:
                 coords = pygame.mouse.get_pos()
@@ -299,8 +366,18 @@ if __name__ == "__main__":
 
         grid.update_timer()
 
+        # Check if solved
+        solved = grid.check_complete()
+
         # Flip the display (make more responsive by not updating whole screen)
         pygame.display.flip()
+
+    if solved:  # Stops timer, printed complete msg and stop user input
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
 
     pygame.quit()
     exit()  # To exit python interpreter in vscode
