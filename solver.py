@@ -2,6 +2,8 @@
 import pprint
 import copy
 
+import sys
+
 
 class Sudoku_Solver():
     '''Sudoku solver for basic sudoku iterations. Will return all solutions.'''
@@ -190,6 +192,22 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
         return True
 
 
+class Advanced_Sudoku_Solver_Improved(Advanced_Sudoku_Solver):
+    def next_empty(self):
+        # Return the empty cell with the most information (least num valids)
+        num_valids = {}
+        for r, row in enumerate(self.puzzle):
+            for c, num in enumerate(row):
+                if num is None:
+                    num_valids[(r, c)] = 0
+                    for i in range(1, 10):
+                        if self.valid(r, c, i):
+                            num_valids[(r, c)] += 1
+
+        min_r_c = min(num_valids, key=num_valids.get)
+        return min_r_c
+
+
 if __name__ == "__main__":
     puzzle = [[i for i in range(9)] for _ in range(9)]
 
@@ -217,6 +235,8 @@ if __name__ == "__main__":
     solutions = sudoku_solver.solve()
 
     pprint.pprint(solutions)
+
+    print('Done!')
 
     puzzle = [
             [],
