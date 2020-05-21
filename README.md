@@ -53,7 +53,13 @@ The basic solving algorithm will run through each empty cell. For each cell it w
 This algorithm will solve most puzzles instantly, however, its easy to see that for all solutions in worst case (an empty board) it would have time complexity of O(n^n^2) where n is the row/column length. For a 9x9 board this is a rather huge number of 9^81 which would cover all 6.6 sextillion possible solutions to a standard sudoku board.
 
 ### Improvements to the basic solver
-To improve the efficiency of the basic solver we can adjust the order it moves across the board. Instead of moving in a uniform sequence we could select the cells we have most information about first.
+To improve the efficiency of the basic solver we can adjust the order it moves across the board. Instead of moving in a uniform sequence we could check the cells we have the most information about first.
+
+To do this its as simple as refactoring the next_empty() method. Here, I created a new class inheriting from the Advanced_Sudoku_Solver() class allowing us to inherit solutions to anti-chess amongst other things.
+
+This implementation brings down the time it takes to solve the most complex test puzzle (multi constraint with multiple solutions) from 5.424s to 2.177s.
+
+While checking the information we have on each cell we could use dynamic programming to store the information rather than recomputing in the next solve.
 
 
 #### (Consider time complexity in more detail)
