@@ -9,29 +9,46 @@ class Sudoku_Solver():
     '''Sudoku solver for basic sudoku iterations. Will return all solutions.'''
     def __init__(self, puzzle):
         self.puzzle = puzzle
+        self.original_puzzle = copy.deepcopy(self.puzzle)
         self.solutions = []
+        self.iterations = []  # Store iterations to solution
 
-    def solve(self, first_run=True):
+    def solve(self, first_run=True, all_solutions=True):
         if first_run:
+            self.puzzle = copy.deepcopy(self.original_puzzle)
             self.solutions = []
+            self.iterations = []
 
         if self.solved():
             self.solutions.append(copy.deepcopy(self.puzzle))
-            return True
+            return all_solutions  # To get all solutions or not (could use gen)
 
         r, c = self.next_empty()
 
+        keep_searching = True  # Set True in case no valids to confirm
         for i in range(1, 10):
             if self.valid(r, c, i):
                 # Set equal to i and solve again, return False if no solution
-                self.puzzle[r][c] = i
-                self.solve(first_run=False)
+                self.update_puzzle(r, c, i)
+                keep_searching = self.solve(first_run=False,
+                                            all_solutions=all_solutions)
 
-        # Revert cell back to None and return False
-        self.puzzle[r][c] = None
+                if keep_searching is False:  # Don't check rest of loop
+                    break
+
+        # Revert the (potentially) changed cell back to None and continue/not
+        if keep_searching:
+            self.update_puzzle(r, c, None)
 
         if first_run:
             return self.solutions
+
+        return keep_searching
+
+    def update_puzzle(self, r, c, i):
+        self.puzzle[r][c] = i
+
+        self.iterations.append([r, c, i])
 
     def solved(self):
         for row in self.puzzle:
@@ -91,7 +108,9 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
                  main_diagonals=False,
                  magic_square=False):
         self.puzzle = puzzle
+        self.original_puzzle = copy.deepcopy(self.puzzle)
         self.solutions = []
+        self.iterations = []  # Store iterations to solution
 
         self.anti_king = anti_king
         self.anti_knight = anti_knight
@@ -209,19 +228,17 @@ class Advanced_Sudoku_Solver_Improved(Advanced_Sudoku_Solver):
 
 
 if __name__ == "__main__":
-    puzzle = [[i for i in range(9)] for _ in range(9)]
-
     puzzle = [
-            [None, None, 4, None, None, None, 9, None, None],
-            [None, None, None, None, 3, None, None, None, None],
-            [8, None, None, None, None, None, None, None, 5],
-            [None, None, None, 8, None, 9, None, None, None],
-            [None, 9, None, None, 5, None, None, 1, None],
-            [None, None, None, 1, None, 2, None, None, None],
-            [5, None, None, None, None, None, None, None, 2],
-            [None, None, None, None, 7, None, None, None, None],
-            [None, None, 1, None, None, None, 6, None, None],
-                ]
+                  [8, 5, 9, 3, None, 7, 4, 6, 2],
+                  [None, 4, None, 9, None, None, 8, None, None],
+                  [2, None, None, None, None, 4, None, None, 3],
+                  [6, 2, 5, None, None, None, None, 8, 4],
+                  [None, None, None, None, 3, 8, None, 2, 1],
+                  [None, 3, None, None, None, 5, None, None, None],
+                  [None, None, None, 4, None, None, None, None, 8],
+                  [None, 8, 2, None, None, None, 9, 5, 6],
+                  [None, 9, 1, 5, 8, None, None, None, None],
+                 ]
 
     assert len(puzzle) == 9
     for row in puzzle:
@@ -229,8 +246,7 @@ if __name__ == "__main__":
 
     pprint.pprint(puzzle)
 
-    sudoku_solver = Advanced_Sudoku_Solver(puzzle, anti_knight=True,
-                                           main_diagonals=True)
+    sudoku_solver = Advanced_Sudoku_Solver(puzzle)
 
     solutions = sudoku_solver.solve()
 
