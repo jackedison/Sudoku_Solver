@@ -18,7 +18,7 @@ Once cloned to a local repository, simply run `python UI.py` to play the sudoku 
 
 The sudoku in play can be changed by editing it in the sudoku.json file.
 
-Solutions will be savedto a generated solutions.json file.
+Solutions will be saved to a generated solutions.json file.
 
 ## Controls
 * Click on boxes or use arrow keys <kbd>↑</kbd>
@@ -29,13 +29,13 @@ Solutions will be savedto a generated solutions.json file.
 * <kbd>DEL</kbd> or <kbd>delete</kbd> to clear cells
 
 * Hold down <kbd>CTRL</kbd> or <kbd>command</kbd> to select multiple cells
-* Press <kbd>spacebar</kbd> for the computer to solve the sudoku
+* Press <kbd>spacebar</kbd> to see the computer derived solution to the puzzle
 
 
 ## Functionalities
 * Will read in a customisable sudoku from the sudoku.json file. This file can be edited by the user.
 
-* Will solve the sudoku finding **all** possible solutions. Solutions will be saved to a solutions.json file.
+* Will solve the sudoku. By default when run through the UI this will stop after the first solution is found. However, if running through terminal simply set `all_solutions=True` to find all solutions to the sudoku in sudoku.json. Solutions will be saved to a solutions.json file.
 * The user may attempt to solve the sudoku themselves through a pygame UI.
 * A timer will run allowing the user to speedrun their attempts.
 * Incorrect entries will add 15s to the time and highlight the error.
@@ -43,37 +43,55 @@ Solutions will be savedto a generated solutions.json file.
 
 ## Solving algorithms
 
-The second purpose of this software is to enable a real world use case to apply machine learning algorithms to. Using the UI we can visualise how an algorithm would solve a sudoku.
+The second purpose of this software is to enable a real world use case to apply machine learning algorithms to. Using the UI we can visualise how the algorithm solves a sudoku by pressing <kbd>ENTER</kbd>. Originally, this would run the solver as a generator and update new puzzle yields to the UI. However, this required running the solver twice, once to confirm there is a solution in the beginning and then a second time to generate the steps. For this reason it has been modified to simply store 3 parameters each puzzle update and log those to a list.
 
-**TODO** Show solving thought process by pressing enter
+![Alt Text](Graphics/basic_solver.gif)
+
+**TODO** 
+GIFS OF SOLVING
+REFACTOR BIT NICER ENTER CLASS... how does it ineract if you do another command. Enter stop and start is nice.
+Show solving thought process by pressing enter. Requires solver algorithm to be run as generator and return current puzzle each change? Alternatively, will be slightly less efficient user side and may require tons of space but just store how puzzle changes while running and refer to that? Consider complexity (time and space) of both methods, write it up and implement one you decide!
+Quick test of current test cases shows puzzle layouts of 8 to 11,000. 11,000 9x9 lists in memory is quite a lot (100k), but manageable. Would take a very long time to loop through though for a demonstration so?
 
 ### Basic solver
-The basic solving algorithm will run through each empty cell. For each cell it will check which numbers could be valid inputs to the cell. Using recursion it will try each number and continue through the board. If it reaches a cell with no valid inputs it will work backwards to the last cell with another valid entry.
+The basic solving algorithm will run through each empty cell checking which numbers could be valid inputs. On finding a valid input it will apply it and move to the next cell. Thanks to recursion if the algorithm reaches a dead-end it will backtrack to the next valid input in its backlog.
 
-This algorithm will solve most puzzles instantly, however, its easy to see that for all solutions in worst case (an empty board) it would have time complexity of O(n^n^2) where n is the row/column length. For a 9x9 board this is a rather huge number of 9^81 which would cover all 6.6 sextillion possible solutions to a standard sudoku board.
+This algorithm will solve puzzles with a single solution very quickly. **TODO** TO what O(n)? 16 cells required.
 
-### Improvements to the basic solver
-To improve the efficiency of the basic solver we can adjust the order it moves across the board. Instead of moving in a uniform sequence we could check the cells we have the most information about first.
+, however, its easy to see that for all solutions in worst case (an empty board) it would have time complexity of O(n^n^2) where n is the row/column length. For a 9x9 board this is a rather huge number of 9^81 which would cover all 6.6 sextillion possible solutions to a standard sudoku board.
 
-To do this its as simple as refactoring the next_empty() method. Here, I created a new class inheriting from the Advanced_Sudoku_Solver() class allowing us to inherit solutions to anti-chess amongst other things.
+#### Improvements to the solver: Efficient cell selection
+To improve the efficiency of the basic solver we can adjust the order it moves through cells. Instead of moving in a uniform sequence we could check which cells we have the most information for and loop through all their valid entries first.
+
+To implement this its as simple as refactoring the next_empty() method. I created a new class inheriting from the Advanced_Sudoku_Solver() class. This allows us to inherit logic for anti-chess constraints amongst other things.
 
 This implementation brings down the time it takes to solve the most complex test puzzle (multi constraint with multiple solutions) from 5.424s to 2.177s.
 
-While checking the information we have on each cell we could use dynamic programming to store the information rather than recomputing in the next solve.
+However, for finding just the first solution to the same puzzle the algorithm adjustment actually increases the time from 0.05s to a staggering 1.744s! Although we are now moving through the board much more efficiently, the computation it is taking to figure out efficient movement can drastically exceed the computation required to just move in a more basic path for simple solutions.
 
+#### Improvements to the solver: Dynamic programming using hash tables for valid entries
+To reduce the overhead of computing efficient movement we can implement dynamic programming and store valid cell calculations to a hash table. We can now directly update this hash table when checking a new valid number. (Each cell has a set of valid numbers which are updated directly when row, col, or box is updated. This saves full computation of every cell each move. Each recursive function call would have to keep a copy of their hash table.)
+**TODO** implement as new class all this stuff probably. Would only work for basic sudoku unless you code in all constraints again to check which cell valids need to be updated..
+
+### Challenge: can I develop an ML/AI algorithm that can beat my efficient cell selection with dynamic programming solver implementation?
 
 #### (Consider time complexity in more detail)
 #### (More solving algorithms, implement some novel ML)
+#### Review writing of complexities etc.
 
 
 ## Suggested future extensions
 1. Additional constraints. Due to OOP nature of this code these can be easily added with a new method to the Advanced_Sudoku_Solver() class in the solver.py module. Suggestions: tower sudoku, thermometer, quadrant maths.
 
-2. Draw rects (blit, display) one at a time rather than recalculating and image flipping to improve UI snappiness: https://stackoverflow.com/questions/34683930/pygame-program-is-running-slow-why
+2. Draw rects (blit, display) one at a time rather than recalculating and image flipping to improve UI snappiness for a human player: https://stackoverflow.com/questions/34683930/pygame-program-is-running-slow-why
 
-3. Improveplayable UI by adding:
+3. Improve the UI for human playing with functionality for:
     
     a. Pencil marks (top corner & centre box)
+
     b. Cell colouring
+    
     c. Graphics for any new constraints.
+
     d. Interactive, customisable ruleset (e.g. adjust penalties in game)
+
