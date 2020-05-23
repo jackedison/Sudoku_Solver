@@ -172,9 +172,40 @@ class Test_Sudokus(unittest.TestCase):
                     [2, 8, 9, 6, 7, 3, 5, 4, 1],
                     [4, 3, 1, 9, 2, 5, 6, 8, 7]]]
 
-        sudoku_solver = solver.Advanced_Sudoku_Solver(puzzle, anti_knight=True,
-                                                      main_diagonals=True)
+        sudoku_solver = solver.Advanced_Sudoku_Solver_Improved(
+            puzzle,
+            anti_knight=True,
+            main_diagonals=True)
         self.assertEqual(sudoku_solver.solve(), solution)
+
+    def test_multi_constraint_one_solution(self):
+        puzzle = [
+                [None, None, 4, None, None, None, 9, None, None],
+                [None, None, None, None, 3, None, None, None, None],
+                [8, None, None, None, None, None, None, None, 5],
+                [None, None, None, 8, None, 9, None, None, None],
+                [None, 9, None, None, 5, None, None, 1, None],
+                [None, None, None, 1, None, 2, None, None, None],
+                [5, None, None, None, None, None, None, None, 2],
+                [None, None, None, None, 7, None, None, None, None],
+                [None, None, 1, None, None, None, 6, None, None],
+                    ]
+
+        solution = [[[1, 2, 4, 5, 8, 6, 9, 3, 7],
+                    [9, 6, 5, 7, 3, 4, 1, 2, 8],
+                    [8, 3, 7, 2, 9, 1, 4, 6, 5],
+                    [4, 1, 2, 8, 6, 9, 7, 5, 3],
+                    [6, 9, 8, 3, 5, 7, 2, 1, 4],
+                    [7, 5, 3, 1, 4, 2, 8, 9, 6],
+                    [5, 4, 6, 9, 1, 8, 3, 7, 2],
+                    [2, 8, 9, 6, 7, 3, 5, 4, 1],
+                    [3, 7, 1, 4, 2, 5, 6, 8, 9]]]
+
+        sudoku_solver = solver.Advanced_Sudoku_Solver_Improved(
+            puzzle,
+            anti_knight=True,
+            main_diagonals=True)
+        self.assertEqual(sudoku_solver.solve(all_solutions=False), solution)
 
 
 if __name__ == '__main__':
