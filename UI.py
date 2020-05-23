@@ -33,7 +33,7 @@ class Grid():
         self.original_puzzle = copy.deepcopy(self.puzzle)
 
         # Solve and store the solution of the puzzle for future referal
-        sudoku_solver = solver.Advanced_Sudoku_Solver(
+        sudoku_solver = solver.Advanced_Sudoku_Solver_Improved(
             self.puzzle,
             anti_king=self.constraints['anti_king'],
             anti_knight=self.constraints['anti_knight'],
@@ -41,12 +41,13 @@ class Grid():
             magic_square=self.constraints['magic_square']
             )
 
-        self.solutions = sudoku_solver.solve()
-        assert len(self.solutions) > 0  # No solutions exist to sudoku in .json
-        print('This sudoku has {} solution(s)'.format(len(self.solutions)))
+        self.solutions = sudoku_solver.solve(all_solutions=False)  # Just 1 sol
+        assert len(self.solutions) > 0  # No solution to sudoku
         with open('solutions.json', 'w+') as file:  # Save solutions to JSON
-            json.dump({'solutions': self.solutions}, file)
-        self.solution = self.solutions[0]  # Assume 1 solution
+            json.dump({'solution': self.solutions}, file)
+        self.solution = self.solutions[0]  # Assume first solution
+
+        self.iterations = sudoku_solver.iterations
 
         # Draw surface:
         # Initialise font
@@ -254,6 +255,20 @@ class Grid():
 
         self.unselect_all()
 
+    def solve_next(self):
+        # Function to solve and show algorithm steps to solution
+        for iteration in self.iterations:
+            r, c, ele = iteration
+            self.unselect_all()
+            self.select_box(r, c)
+
+            if ele is None:
+                self.clear_cell(r, c)
+            else:
+                self.input_number(ele)
+
+            yield r, c, ele
+
     def display_solved(self, solved):
         # Clear any old text
         left, top = 450, 835
@@ -295,6 +310,11 @@ if __name__ == "__main__":
     # Run game and log user actions
     running = True
     solved = False
+
+    # Generator for solving algoirhtm display
+    sn = grid.solve_next()
+    show_solve = False
+
     while running and not solved:
         keys = pygame.key.get_pressed()  # To check if ctrl is pressed
         clicks = pygame.mouse.get_pressed()  # To check if click held down
@@ -356,6 +376,10 @@ if __name__ == "__main__":
                 if (event.key == pygame.K_SPACE):
                     grid.solve()
 
+                # Enter key
+                if (event.key == pygame.K_RETURN):
+                    show_solve = not show_solve  # Start or stop solving
+
             if event.type == pygame.MOUSEBUTTONDOWN or clicks[0]:
                 coords = pygame.mouse.get_pos()
 
@@ -363,6 +387,9 @@ if __name__ == "__main__":
                     grid.select_box_coords(coords, unselect=False)
                 else:
                     grid.select_box_coords(coords, unselect=True)
+
+        if show_solve:
+            next(sn)
 
         grid.update_timer()
 
