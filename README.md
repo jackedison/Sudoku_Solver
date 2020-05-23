@@ -45,8 +45,9 @@ Solutions will be saved to a generated solutions.json file.
 
 The second purpose of this software is to enable a real world use case to apply machine learning algorithms to. Using the UI we can visualise how the algorithm solves a sudoku by pressing <kbd>ENTER</kbd>. Originally, this would run the solver as a generator and update new puzzle yields to the UI. However, this required running the solver twice, once to confirm there is a solution in the beginning and then a second time to generate the steps. For this reason it has been modified to simply store 3 parameters each puzzle update and log those to a list.
 
+<!--Default image size is 900 814-->
 <p align="center">
-<img src="Graphics/basic_solver.gif" width="300" height="300" />
+<img src="Graphics/basic_solver.gif" width="450" height="407" />
 </p>
 
 **TODO** 
