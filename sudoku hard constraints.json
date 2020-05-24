@@ -1,0 +1,20 @@
+{
+    "_comment": "Taken from https://cracking-the-cryptic.web.app/sudoku/tjN9LtrrTL",
+    "sudoku": [
+                [null, null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null, null],
+                [null, null, 1, null, null, null, null, null, null],
+                [null, null, null, null, null, null, 2, null, null],
+                [null, null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null, null]
+              ],
+    "anti_king": true,
+    "anti_knight": true,
+    "main_diagonals": false,
+    "magic_square": false,
+    "orth_adj_same": false,
+    "orth_adj_consec": true
+}
