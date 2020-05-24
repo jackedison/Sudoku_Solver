@@ -13,5 +13,7 @@
     "anti_king": false,
     "anti_knight": false,
     "main_diagonals": false,
-    "magic_square": false
+    "magic_square": false,
+    "orth_adj_same": false,
+    "orth_adj_consec": false
 }

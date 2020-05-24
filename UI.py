@@ -33,12 +33,14 @@ class Grid():
         self.original_puzzle = copy.deepcopy(self.puzzle)
 
         # Solve and store the solution of the puzzle for future referal
-        sudoku_solver = solver.Advanced_Sudoku_Solver_Improved(
+        sudoku_solver = solver.Advanced_Sudoku_Solver(
             self.puzzle,
             anti_king=self.constraints['anti_king'],
             anti_knight=self.constraints['anti_knight'],
             main_diagonals=self.constraints['main_diagonals'],
-            magic_square=self.constraints['magic_square']
+            magic_square=self.constraints['magic_square'],
+            orth_adj_same=self.constraints['orth_adj_same'],
+            orth_adj_consec=self.constraints['orth_adj_consec']
             )
 
         self.solutions = sudoku_solver.solve(all_solutions=False)  # Just 1 sol
