@@ -106,7 +106,9 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
     def __init__(self, puzzle, anti_king=False,
                  anti_knight=False, thermometer=False,
                  main_diagonals=False,
-                 magic_square=False):
+                 magic_square=False,
+                 orth_adj_same=False,
+                 orth_adj_consec=False):
         self.puzzle = puzzle
         self.original_puzzle = copy.deepcopy(self.puzzle)
         self.solutions = []
@@ -117,6 +119,8 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
         self.thermometer = thermometer
         self.main_diagonals = main_diagonals
         self.magic_square = magic_square
+        self.orth_adj_same = orth_adj_same
+        self.orth_adj_consec = orth_adj_consec
 
     def get_cell(self, r, c):
         if r < 0 or r > 8 or c < 0 or c > 8:
@@ -126,6 +130,7 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
 
     def check_anti_king(self, r, c, i):
         # Check all squares 1 away from r, c
+        # For all checks, True means it breaks the constraint. False means ok.
         king_squares = [self.get_cell(r-1, c-1), self.get_cell(r-1, c),
                         self.get_cell(r-1, c+1), self.get_cell(r, c-1),
                         self.get_cell(r, c+1), self.get_cell(r+1, c-1),
@@ -187,6 +192,26 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
 
         return False
 
+    def check_orth_adj_same(self, r, c, i):
+        # Check whether orogonally adjacent are same (half kings move)
+        orthogonal_squares = [self.get_cell(r-1, c), self.get_cell(r+1, c),
+                              self.get_cell(r, c-1), self.get_cell(r, c+1)]
+
+        if i in orthogonal_squares:
+            return True
+
+        return False
+
+    def check_orth_adj_consec(self, r, c, i):
+        # Check whether orthogonally adjacent are consecutive numbers
+        orthogonal_squares = [self.get_cell(r-1, c), self.get_cell(r+1, c),
+                              self.get_cell(r, c-1), self.get_cell(r, c+1)]
+
+        if i+1 in orthogonal_squares or i-1 in orthogonal_squares:
+            return True
+
+        return False
+
     def valid(self, r, c, i):
         # Check all original sudoku constraints with parent method
         if super().valid(r, c, i) is False:
@@ -205,6 +230,16 @@ class Advanced_Sudoku_Solver(Sudoku_Solver):
         # Check magic square constraint
         if self.magic_square:
             if self.check_magic_square(r, c, i):
+                return False
+
+        # Check orthogonally adjacent same
+        if self.orth_adj_same:
+            if self.check_orth_adj_same(r, c, i):
+                return False
+
+        # Check orthogonally adjacent consecutive
+        if self.orth_adj_consec:
+            if self.check_orth_adj_consec(r, c, i):
                 return False
 
         # If no issues found return True
@@ -229,16 +264,16 @@ class Advanced_Sudoku_Solver_Improved(Advanced_Sudoku_Solver):
 
 if __name__ == "__main__":
     puzzle = [
-                  [8, 5, 9, 3, None, 7, 4, 6, 2],
-                  [None, 4, None, 9, None, None, 8, None, None],
-                  [2, None, None, None, None, 4, None, None, 3],
-                  [6, 2, 5, None, None, None, None, 8, 4],
-                  [None, None, None, None, 3, 8, None, 2, 1],
-                  [None, 3, None, None, None, 5, None, None, None],
-                  [None, None, None, 4, None, None, None, None, 8],
-                  [None, 8, 2, None, None, None, 9, 5, 6],
-                  [None, 9, 1, 5, 8, None, None, None, None],
-                 ]
+            [None, None, None, None, None, None, None, None, None],
+            [None, None, None, 9, 8, None, None, None, None],
+            [None, None, None, None, None, None, 9, 8, None],
+            [None, 9, None, None, None, None, None, None, None],
+            [None, None, None, 8, 9, None, None, None, None],
+            [None, None, None, None, None, None, 8, 9, None],
+            [None, None, 9, None, None, 8, None, None, 7],
+            [None, None, None, None, None, 9, None, None, 8],
+            [None, None, 8, None, None, 7, None, None, 9]
+            ]
 
     assert len(puzzle) == 9
     for row in puzzle:
@@ -248,7 +283,7 @@ if __name__ == "__main__":
 
     sudoku_solver = Advanced_Sudoku_Solver(puzzle)
 
-    solutions = sudoku_solver.solve()
+    solutions = sudoku_solver.solve(all_solutions=False)
 
     pprint.pprint(solutions)
 
