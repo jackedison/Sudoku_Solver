@@ -207,6 +207,32 @@ class Test_Sudokus(unittest.TestCase):
             main_diagonals=True)
         self.assertEqual(sudoku_solver.solve(all_solutions=False), solution)
 
+    def test_worst_case_hard(self):
+        puzzle = [
+                [None, None, None, None, None, None, None, None, None],
+                [None, None, None, 9, 8, None, None, None, None],
+                [None, None, None, None, None, None, 9, 8, None],
+                [None, 9, None, None, None, None, None, None, None],
+                [None, None, None, 8, 9, None, None, None, None],
+                [None, None, None, None, None, None, 8, 9, None],
+                [None, None, 9, None, None, 8, None, None, 7],
+                [None, None, None, None, None, 9, None, None, 8],
+                [None, None, 8, None, None, 7, None, None, 9]
+              ]
+
+        solution = [[[9, 8, 1, 2, 3, 4, 5, 7, 6],
+                    [2, 5, 7, 9, 8, 6, 1, 3, 4],
+                    [3, 4, 6, 1, 7, 5, 9, 8, 2],
+                    [8, 9, 2, 4, 5, 1, 7, 6, 3],
+                    [6, 7, 5, 8, 9, 3, 2, 4, 1],
+                    [1, 3, 4, 7, 6, 2, 8, 9, 5],
+                    [4, 1, 9, 3, 2, 8, 6, 5, 7],
+                    [7, 6, 3, 5, 1, 9, 4, 2, 8],
+                    [5, 2, 8, 6, 4, 7, 3, 1, 9]]]
+
+        sudoku_solver = solver.Advanced_Sudoku_Solver(puzzle)
+        self.assertEqual(sudoku_solver.solve(all_solutions=False), solution)
+
 
 if __name__ == '__main__':
     unittest.main()
