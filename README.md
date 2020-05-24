@@ -57,8 +57,17 @@ The first implementation is of a basic solving algorithm which will run through 
 <img src="Graphics/basic_solver.gif" width="450" height="407" />
 </p>
 
-This basic algorithm will solve puzzles with a single solution very quickly. **TODO** TO what O(n)? 16 cells required.
+This basic algorithm will solve puzzles with a single solution quickly enough for most needs. [Using brute force researchers have confirmed that a single solution sudoku requires a minimum of 17 clues](https://arxiv.org/abs/1201.0749). If we assume a single solution standard sudoku variant, the worst case for this algorithm would be something like a puzzle containing 17 high numbers focused in the bottom quadrants. For example:
 
+<!--Default image size is 1800 1632-->
+<p align="center">
+<img src="Graphics/worst_case.png" width="450" height="408" />
+</p>
+
+To find a single solution to the puzzle above this implementation takes less than 0.5s on my machine. However, to find multiple solutions this algorithm is far less feasible.
+
+**TODO** TO what O(n)? 16 cells required.
+**TODO** simulate random 17 digit clue puzzles and how long to solve. Run 1k
 , however, its easy to see that for all solutions in worst case (an empty board) it would have time complexity of O(n^n^2) where n is the row/column length. For a 9x9 board this is a rather huge number of 9^81 which would cover all 6.6 sextillion possible solutions to a standard sudoku board.
 
 #### Improvements to the solver: Efficient cell selection
@@ -86,6 +95,8 @@ To reduce the overhead of computing efficient movement we can implement dynamic 
 ### **TODO** Write up extra extension to this algorithm - assessing what each cell can and cant be in sets and exploring row and column combinations with that. As an advanced player would do.
 
 ### **TODO** any more advanced solving algos computers can do?
+### Consider same implementation of constraints for solving algo (i.e. add anti chess for improved solver)
+### Consider sets, what cells can be, cant be, and where it must be (to rule out row etc)
 
 ### Challenge: can I develop an ML/AI algorithm that can beat my efficient cell selection with dynamic programming solver implementation?
 
@@ -95,7 +106,7 @@ To reduce the overhead of computing efficient movement we can implement dynamic 
 
 
 ## Suggested future extensions
-1. Additional constraints. Due to OOP nature of this code these can be easily added with a new method to the Advanced_Sudoku_Solver() class in the solver.py module. Suggestions: tower sudoku, thermometer, quadrant maths.
+1. Additional constraints. Due to OOP nature of this code these can be easily added with a new method to the Advanced_Sudoku_Solver() class in the solver.py module. Suggestions: tower sudoku, thermometer, quadrant maths, adjacent squares consecutive.
 
 2. Draw rects (blit, display) one at a time rather than recalculating and image flipping to improve UI snappiness for a human player: https://stackoverflow.com/questions/34683930/pygame-program-is-running-slow-why
 
